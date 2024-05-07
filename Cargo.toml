@@ -1,0 +1,27 @@
+[package]
+name = "enso"
+authors = ["Rodrigo Bronzelle <bronzelle@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+description = "Enso API Rust Client"
+license = "MIT"
+homepage = "https://www.enso.finance/"
+repository = "https://github.com/bronzelle/enso"
+keywords = ["enso", "api", "defi"]
+categories = ["api-bindings"]
+
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "enso_example"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+dotenv = "0.15"
+envy = "0.4"
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.37", features = ["full"] }
