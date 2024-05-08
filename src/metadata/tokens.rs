@@ -37,14 +37,13 @@ struct Tokens {
     data: Vec<Token>,
 }
 
+type ServerOutput = Result<Response, reqwest::Error>;
+type ParsingOutput = Result<Tokens, reqwest::Error>;
+
 enum StreamStates {
     Checking,
-    PollingServer(
-        Option<
-            Pin<Box<dyn Future<Output = core::result::Result<Response, reqwest::Error>> + Send>>,
-        >,
-    ),
-    PollingParsing(Option<Pin<Box<dyn Future<Output = Result<Tokens, reqwest::Error>> + Send>>>),
+    PollingServer(Option<Pin<Box<dyn Future<Output = ServerOutput> + Send>>>),
+    PollingParsing(Option<Pin<Box<dyn Future<Output = ParsingOutput> + Send>>>),
 }
 
 pub struct PaginatedTokensStream {

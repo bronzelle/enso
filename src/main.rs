@@ -1,5 +1,4 @@
 use futures::StreamExt;
-use tokio;
 
 use enso::core::{Enso, Version};
 

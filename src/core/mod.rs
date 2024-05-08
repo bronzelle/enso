@@ -1,14 +1,20 @@
+use std::fmt::Display;
+
 const API_ADDRESS: &str = "https://api.enso.finance";
 
 pub enum Version {
     V1,
 }
 
-impl ToString for Version {
-    fn to_string(&self) -> String {
-        match self {
-            Version::V1 => "v1".to_string(),
-        }
+impl Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Version::V1 => "v1".to_string(),
+            }
+        )
     }
 }
 
