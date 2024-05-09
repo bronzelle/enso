@@ -13,8 +13,8 @@ pub static ENSO_PROTOCOL: Lazy<Protocol> = Lazy::new(|| Protocol {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Protocol {
-    slug: String,
-    url: String,
+    pub slug: String,
+    pub url: String,
 }
 
 impl Enso {
