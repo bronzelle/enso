@@ -125,6 +125,7 @@ dependencies = [
  "dotenv",
  "envy",
  "futures",
+ "once_cell",
  "reqwest",
  "serde",
  "serde_json",

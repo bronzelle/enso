@@ -1,8 +1,14 @@
 use anyhow::{anyhow, Result};
+use once_cell::sync::Lazy;
 use reqwest::{header::AUTHORIZATION, Client};
 use serde::{Deserialize, Serialize};
 
 use crate::core::Enso;
+
+pub static ENSO_PROTOCOL: Lazy<Protocol> = Lazy::new(|| Protocol {
+    slug: "enso".to_string(),
+    url: "https://api.enso.finance".to_string(),
+});
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

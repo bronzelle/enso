@@ -1,8 +1,19 @@
 use anyhow::{anyhow, Result};
+use once_cell::sync::Lazy;
 use reqwest::{header::AUTHORIZATION, Client};
 use serde::Deserialize;
 
 use crate::core::Enso;
+
+pub static ACTION_CALL: Lazy<Action> = Lazy::new(|| Action {
+    action: "call".to_string(),
+    inputs: vec![
+        ("address".to_owned(), "".to_owned()),
+        ("method".to_owned(), "".to_owned()),
+        ("abi".to_owned(), "".to_owned()),
+        ("args".to_owned(), "".to_owned()),
+    ],
+});
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
