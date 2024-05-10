@@ -8,6 +8,7 @@ use crate::metadata::protocols::{Protocol, ENSO_PROTOCOL};
 
 use super::actions::{Action, ACTION_CALL};
 
+#[derive(Clone, Debug)]
 pub enum ParamValue {
     Value(String),
     LastTransaction,
