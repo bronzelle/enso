@@ -28,6 +28,17 @@ pub struct Bundle {
 }
 
 impl Bundle {
+    /// Creates a new `Bundle` instance for the specified chain.
+    ///
+    /// # Arguments
+    ///
+    /// * `chain_id` - The ID of the blockchain network.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let bundle = Bundle::new(1);
+    /// ```
     pub fn new(chain_id: u32) -> Bundle {
         Bundle {
             chain_id,
@@ -35,10 +46,23 @@ impl Bundle {
         }
     }
 
+    /// Adds an Enso action to the bundle.
+    ///
+    /// # Arguments
+    ///
+    /// * `action` - The Enso action to add.
+    /// * `args` - A vector of parameters for the action.
     pub fn add_enso_action(&mut self, action: Action, args: Vec<ParamValue>) {
         self.add_action(ENSO_PROTOCOL.clone(), action, args);
     }
 
+    /// Adds a protocol-specific action to the bundle.
+    ///
+    /// # Arguments
+    ///
+    /// * `protocol` - The protocol name (e.g., "yearn").
+    /// * `action` - The action to perform (e.g., "deposit").
+    /// * `args` - A vector of parameters for the action.
     pub fn add_action(&mut self, protocol: Protocol, action: Action, args: Vec<ParamValue>) {
         self.transactions.push(Transaction {
             protocol,
@@ -47,6 +71,18 @@ impl Bundle {
         });
     }
 
+    /// Adds a custom contract call to the bundle.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - A vector of parameters for the call.
+    /// * `abi_args` - A vector of ABI-encoded arguments for the call.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// bundle.add_call(vec![ParamValue::Value(0)], vec![ParamValue::Array()]);
+    /// ```
     pub fn add_call(&mut self, mut args: Vec<ParamValue>, abi_args: Vec<ParamValue>) {
         args.push(ParamValue::ValueArray(abi_args));
         self.add_action(ENSO_PROTOCOL.clone(), ACTION_CALL.clone(), args);
@@ -113,6 +149,22 @@ impl Bundle {
 }
 
 impl Enso {
+    /// Sends a bundle of actions to the Enso API.
+    ///
+    /// # Arguments
+    ///
+    /// * `bundle` - The `Bundle` instance containing the actions to send.
+    /// * `from_address` - The Ethereum address from which to send the transaction.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` indicating success or failure of the operation.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let result = enso.send_bundle(bundle, "0xYourAddress").await;
+    /// ```
     pub async fn send_bundle(&self, bundle: Bundle, from_address: &str) -> Result<()> {
         let client = Client::new();
         let url = format!("{}/shortcuts/bundle", self.get_api_url());

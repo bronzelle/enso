@@ -123,6 +123,21 @@ impl Stream for PaginatedTokensStream {
 }
 
 impl Enso {
+    /// Streams tokens based on provided parameters.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - A slice of key-value pairs to filter the tokens.
+    ///
+    /// # Returns
+    ///
+    /// A pinned `Stream` yielding results with vectors of token strings.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let stream = enso.tokens_stream(&[("param1", "value1")]);
+    /// ```
     pub fn tokens_stream(
         &self,
         params: &[(&str, &str)],
@@ -145,6 +160,21 @@ impl Enso {
         Box::pin(stream)
     }
 
+    /// Retrieves a list of tokens based on provided parameters.
+    ///
+    /// # Arguments
+    ///
+    /// * `params` - A slice of key-value pairs to filter the tokens.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing metadata and a vector of token strings.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let (meta, tokens) = enso.get_tokens(&[("param1", "value1")]).await?;
+    /// ```
     pub async fn get_tokens(&self, params: &[(&str, &str)]) -> Result<(Meta, Vec<String>)> {
         let client = Client::new();
         let url = format!("{}/tokens", self.get_api_url());

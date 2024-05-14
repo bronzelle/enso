@@ -18,6 +18,17 @@ pub struct Protocol {
 }
 
 impl Enso {
+    /// Retrieves a list of available protocols from the Enso API.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a vector of `Protocol` instances or an error.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let protocols = enso.get_protocols().await?;
+    /// ```
     pub async fn get_protocols(&self) -> Result<Vec<Protocol>> {
         let client = Client::new();
         let url = format!("{}/protocols", self.get_api_url());

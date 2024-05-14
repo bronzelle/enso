@@ -24,6 +24,17 @@ pub struct Action {
 }
 
 impl Enso {
+    /// Retrieves a list of available actions from the Enso API.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a vector of `Action` instances or an error.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let actions = enso.get_actions().await?;
+    /// ```
     pub async fn get_actions(&self) -> Result<Vec<Action>> {
         let client = Client::new();
         let url = format!("{}/actions", self.get_api_url());

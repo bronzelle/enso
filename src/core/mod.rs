@@ -25,6 +25,18 @@ pub struct Enso {
 }
 
 impl Enso {
+    /// Creates a new `Enso` instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `api_key` - The API key for accessing Enso.
+    /// * `version` - The API version to use.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let enso = Enso::new("your_api_key", Version::V1);
+    /// ```
     pub fn new<T: ToString>(api_key: T, version: Version) -> Enso {
         Enso {
             api_address: API_ADDRESS.to_string(),
@@ -33,7 +45,7 @@ impl Enso {
         }
     }
 
-    pub fn get_api_url(&self) -> String {
+    pub(crate) fn get_api_url(&self) -> String {
         format!("{}/api/{}", self.api_address, self.version)
     }
 }
