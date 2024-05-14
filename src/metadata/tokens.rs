@@ -216,7 +216,7 @@ mod tests {
             "1e02632d-6feb-4a75-a157-documentation".to_string(),
             Version::V1,
         );
-        let tokens = enso.get_tokens(&[("chainId".into(), "10".into())]).await;
+        let tokens = enso.get_tokens(&[("chainId", "10")]).await;
         let Ok((meta, _)) = tokens else {
             panic!("retrieving tokens failed!");
         };

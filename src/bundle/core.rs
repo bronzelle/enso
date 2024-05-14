@@ -151,7 +151,7 @@ mod test {
         ],
     });
 
-    static JSON: &'static str = r#"
+    static JSON: &str = r#"
     [
         {
             "protocol": "enso",
