@@ -696,7 +696,7 @@ fn handle_action_type_selection(
                 h.data.selected_transaction = h.data.transactions.len() - 1;
                 h.data.selected_parameter = 0;
                 h.data.selected_value = 0;
-                Some(UIState::BrowseTransactions)
+                Some(UIState::BrowseParameters)
             }
             2 => None,
             _ => None,
