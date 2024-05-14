@@ -10,7 +10,10 @@ use enso::{
         actions::{Action, ACTION_CALL},
         core::ParamValue,
     },
-    metadata::protocols::{Protocol, ENSO_PROTOCOL},
+    metadata::{
+        networks::Network,
+        protocols::{Protocol, ENSO_PROTOCOL},
+    },
 };
 use once_cell::sync::Lazy;
 use ratatui::{
@@ -40,6 +43,9 @@ mod basic_drawings;
 mod keyboard;
 
 enum UIState {
+    NetworkSelector {
+        selected_network: usize,
+    },
     BrowseTransactions,
     BrowseParameters,
     BrowseValues,
@@ -74,6 +80,14 @@ struct Handle<'a, 'b> {
 }
 
 pub type DataTransaction = Vec<(Action, Protocol, Vec<ParamValue>)>;
+
+static H_NETWORK_DESC: Lazy<Paragraph> = Lazy::new(|| {
+    let block = Block::default()
+        .title("Enso, create and send bundle transactions.")
+        .borders(Borders::ALL);
+    let text: Vec<Line> = vec!["".into(), "Select a network".into()];
+    Paragraph::new(text).block(block).style(Style::default())
+});
 
 static H_HOME_DESC: Lazy<Paragraph> = Lazy::new(|| {
     let block = Block::default()
@@ -187,12 +201,18 @@ pub async fn run(
     let mut terminal = Terminal::new(backend)?;
 
     let mut update_ui = true;
-    let mut ui_state = UIState::BrowseTransactions;
+    let mut ui_state = UIState::NetworkSelector {
+        selected_network: 0,
+    };
     let mut key_event = KeyEvent::None;
     let mut data = Data::default();
     let mut protocols: Option<Vec<Protocol>> = None;
     let mut tokens: Option<Vec<String>> = None;
     let mut actions: Option<Vec<Action>> = None;
+    let mut networks: Option<Vec<Network>> = None;
+
+    _ = ui_to_business_sender.send(UIRequest::GetNetworks).await;
+
     loop {
         let mut msg = None;
         if update_ui {
@@ -205,6 +225,7 @@ pub async fn run(
                     &protocols,
                     &tokens,
                     &actions,
+                    &networks,
                 );
             })?;
         }
@@ -228,6 +249,9 @@ pub async fn run(
             Ok(Some(BusinessResponse::Tokens(t))) => {
                 tokens = Some(t);
             }
+            Ok(Some(BusinessResponse::Networks(t))) => {
+                networks = Some(t);
+            }
             _ => {}
         }
     }
@@ -250,6 +274,7 @@ fn layout(
     protocols: &Option<Vec<Protocol>>,
     tokens: &Option<Vec<String>>,
     actions: &Option<Vec<Action>>,
+    networks: &Option<Vec<Network>>,
 ) -> Option<UIRequest> {
     let header = Layout::default()
         .direction(Direction::Vertical)
@@ -284,6 +309,24 @@ fn layout(
     f.render_widget(H_HOME_DESC.clone(), header[0]);
 
     match &mut ui_state {
+        UIState::NetworkSelector { selected_network } => {
+            let request = handle_network_selector(
+                Handle {
+                    f,
+                    data,
+                    header: header[0],
+                    body,
+                    footer: footer[0],
+                    key_event,
+                },
+                networks,
+                selected_network,
+            );
+            return request.map(|r| {
+                *ui_state = UIState::BrowseTransactions;
+                r
+            });
+        }
         UIState::BrowseTransactions | UIState::BrowseParameters | UIState::BrowseValues => {
             let request = browse_transactions(
                 Handle {
@@ -417,6 +460,38 @@ fn layout(
         }
     };
     None
+}
+
+fn handle_network_selector(
+    h: Handle,
+    networks: &Option<Vec<Network>>,
+    selected_network: &mut usize,
+) -> Option<UIRequest> {
+    h.f.render_widget(H_NETWORK_DESC.clone(), h.header);
+    let items = if let Some(networks) = networks {
+        networks
+            .iter()
+            .map(|network| ListItem::new(network.name.clone()))
+            .collect::<Vec<ListItem>>()
+    } else {
+        vec![ListItem::new("Waiting protocols list...")]
+    };
+    draw_nav_list(
+        h.f,
+        items,
+        h.body[0],
+        "Networks",
+        Navigable::Navigable(h.key_event, selected_network),
+    );
+    h.f.render_widget(Block::default().borders(Borders::ALL), h.body[1]);
+    h.f.render_widget(Block::default().borders(Borders::ALL), h.body[2]);
+    match h.key_event {
+        KeyEvent::Enter | KeyEvent::Right => networks
+            .as_ref()
+            .and_then(|n| n.get(*selected_network))
+            .map(|network| UIRequest::SetNetwork(network.id)),
+        _ => None,
+    }
 }
 
 fn browse_transactions(h: Handle, ui_state: &mut UIState) -> Option<UIRequest> {

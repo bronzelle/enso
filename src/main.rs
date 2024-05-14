@@ -3,7 +3,7 @@ use anyhow::Result;
 use enso::{
     bundle::{actions::Action, core::Bundle},
     core::{Enso, Version},
-    metadata::protocols::Protocol,
+    metadata::{networks::Network, protocols::Protocol},
 };
 use futures::StreamExt;
 use tokio::{
@@ -35,6 +35,8 @@ async fn main() -> Result<()> {
 
 #[derive(Debug)]
 pub enum UIRequest {
+    GetNetworks,
+    SetNetwork(u32),
     GetTokens,
     GetProtocols,
     GetActions,
@@ -46,6 +48,7 @@ pub enum BusinessResponse {
     Tokens(Vec<String>),
     Protocols(Vec<Protocol>),
     Actions(Vec<Action>),
+    Networks(Vec<Network>),
 }
 
 async fn business(
@@ -54,12 +57,14 @@ async fn business(
 ) {
     let config = config::Config::default();
     let enso = Enso::new(config.api_key, Version::V1);
+    let mut chain_id: Option<u32> = None;
 
     loop {
         match ui_to_business_receiver.recv().await {
             Some(UIRequest::GetTokens) => {
                 let mut tokens = Vec::new();
-                let mut tokens_streams = enso.tokens_stream(&[("chainId", "10")]);
+                let mut tokens_streams =
+                    enso.tokens_stream(&[("chainId", &format!("{}", chain_id.unwrap_or(1)))]);
                 while let Some(tokens_received) = tokens_streams.next().await {
                     match tokens_received {
                         Ok(tokens_received) => tokens.extend(tokens_received),
@@ -92,6 +97,16 @@ async fn business(
                     bundle.add_action(protocol, action, args);
                 });
                 let _ = enso.send_bundle(bundle, "0x").await;
+            }
+            Some(UIRequest::GetNetworks) => {
+                let networks = enso.get_networks().await.unwrap();
+                business_to_ui_sender
+                    .send(BusinessResponse::Networks(networks))
+                    .await
+                    .unwrap();
+            }
+            Some(UIRequest::SetNetwork(id)) => {
+                chain_id = Some(id);
             }
             Some(UIRequest::Quit) => break,
             None => break,
