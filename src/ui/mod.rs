@@ -190,6 +190,14 @@ struct Data {
     selected_value: usize,
 }
 
+#[derive(Default)]
+struct Cache {
+    tokens: Option<Vec<String>>,
+    protocols: Option<Vec<Protocol>>,
+    actions: Option<Vec<Action>>,
+    networks: Option<Vec<Network>>,
+}
+
 pub async fn run(
     ui_to_business_sender: Sender<UIRequest>,
     mut business_to_ui_receiver: Receiver<BusinessResponse>,
@@ -206,10 +214,7 @@ pub async fn run(
     };
     let mut key_event = KeyEvent::None;
     let mut data = Data::default();
-    let mut protocols: Option<Vec<Protocol>> = None;
-    let mut tokens: Option<Vec<String>> = None;
-    let mut actions: Option<Vec<Action>> = None;
-    let mut networks: Option<Vec<Network>> = None;
+    let mut cache = Cache::default();
 
     _ = ui_to_business_sender.send(UIRequest::GetNetworks).await;
 
@@ -217,16 +222,7 @@ pub async fn run(
         let mut msg = None;
         if update_ui {
             terminal.draw(|f| {
-                msg = layout(
-                    f,
-                    &mut ui_state,
-                    &mut data,
-                    key_event,
-                    &protocols,
-                    &tokens,
-                    &actions,
-                    &networks,
-                );
+                msg = layout(f, &mut ui_state, &mut data, key_event, &cache);
             })?;
         }
         if let Some(msg) = msg {
@@ -241,16 +237,16 @@ pub async fn run(
         }
         match time::timeout(Duration::from_millis(10), business_to_ui_receiver.recv()).await {
             Ok(Some(BusinessResponse::Protocols(p))) => {
-                protocols = Some(p);
+                cache.protocols = Some(p);
             }
             Ok(Some(BusinessResponse::Actions(a))) => {
-                actions = Some(a);
+                cache.actions = Some(a);
             }
             Ok(Some(BusinessResponse::Tokens(t))) => {
-                tokens = Some(t);
+                cache.tokens = Some(t);
             }
             Ok(Some(BusinessResponse::Networks(t))) => {
-                networks = Some(t);
+                cache.networks = Some(t);
             }
             _ => {}
         }
@@ -271,11 +267,14 @@ fn layout(
     mut ui_state: &mut UIState,
     data: &mut Data,
     key_event: KeyEvent,
-    protocols: &Option<Vec<Protocol>>,
-    tokens: &Option<Vec<String>>,
-    actions: &Option<Vec<Action>>,
-    networks: &Option<Vec<Network>>,
+    cache: &Cache,
 ) -> Option<UIRequest> {
+    let Cache {
+        protocols,
+        tokens,
+        actions,
+        networks,
+    } = cache;
     let header = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
