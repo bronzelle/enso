@@ -8,10 +8,19 @@ use crate::core::Enso;
 pub static ACTION_CALL: Lazy<Action> = Lazy::new(|| Action {
     action: "call".to_string(),
     inputs: vec![
-        ("address".to_owned(), "".to_owned()),
-        ("method".to_owned(), "".to_owned()),
-        ("abi".to_owned(), "".to_owned()),
-        ("args".to_owned(), "".to_owned()),
+        (
+            "address".to_owned(),
+            "The target contract address for the call".to_owned(),
+        ),
+        (
+            "method".to_owned(),
+            "The method name to invoke on the contract".to_owned(),
+        ),
+        ("abi".to_owned(), "The ABI of the method".to_owned()),
+        (
+            "args".to_owned(),
+            "The arguments for the method call".to_owned(),
+        ),
     ],
 });
 
